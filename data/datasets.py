@@ -57,6 +57,8 @@ class VKittiDataset(data.Dataset):
         return len(self.files)
     
     def read_data(self, datafiles):
+        
+        print(self.root, datafiles)
 
         assert osp.exists(osp.join(self.root, datafiles['rgb'])), "Image does not exist"
         rgb = Image.open(osp.join(self.root, datafiles['rgb'])).convert('RGB')

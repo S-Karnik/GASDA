@@ -123,10 +123,10 @@ class BaseModel():
                 state_dict = torch.load(pretrained, map_location=str(self.device))
                 del state_dict._metadata
 
-            for key in list(state_dict.keys()):  
-                 self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
-            net.load_state_dict(state_dict)
-            print("initialize {} with {}".format(model_name, pretrained))
+                for key in list(state_dict.keys()):  
+                     self.__patch_instance_norm_state_dict(state_dict, net, key.split('.'))
+                net.load_state_dict(state_dict)
+                print("initialize {} with {}".format(model_name, pretrained))
 
     # load models from the disk
     def load_networks(self, which_epoch):
