@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+import bokeh
+#import plotly
 """
 file1(loss_type1, loss_type2, loss_type3),
 file2(loss_type1, loss_type2, loss_type3),
@@ -20,4 +23,35 @@ for i in range(len(files)):
             for j in range(1,len(blocks),2):
                 losses[i][which_one].append(float(blocks[j]))
                 which_one += 1
-print(losses[0][0])
+
+""" fs """
+plt.plot(losses[0][0])
+plt.plot(losses[2][0])
+plt.ylabel('(loss type one) modified fs vs original fs')
+plt.show()
+
+plt.plot(losses[0][1])
+plt.plot(losses[2][1])
+plt.ylabel('(loss type two) modified fs vs original fs')
+plt.show()
+
+plt.plot(losses[0][2])
+plt.plot(losses[2][2])
+plt.ylabel('(loss type three) modified fs vs original fs')
+plt.show()
+
+""" ft """
+plt.plot(losses[1][0])
+plt.plot(losses[3][0])
+plt.ylabel('(loss type one) modified ft vs original ft')
+plt.show()
+
+plt.plot(losses[1][1])
+plt.plot(losses[3][1])
+plt.ylabel('(loss type two) modified ft vs original ft')
+plt.show()
+
+plt.plot(losses[1][2])
+plt.plot(losses[3][2])
+plt.ylabel('(loss type three) modified ft vs original ft')
+plt.show()
