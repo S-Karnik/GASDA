@@ -25,6 +25,56 @@ for i in range(len(files)):
                 which_one += 1
 
 """ fs """
+
+"""
+print("fs lengths: ", len(fs), len(ofs))
+ratio_fs = int(len(ofs)/len(fs)) # look below for why floor
+print("ft lengths: ", len(ft), len(oft))
+ratio_ft = int(len(oft)/len(ft)) # we want it floored so we are guaranteed to get >= points and we can ignore after a point
+
+print(ratio_fs,ratio_ft)
+
+ofs_short = []
+oft_short = []
+
+
+for i in range(0, len(ofs),ratio_fs):
+    if(len(ofs_short) == len(fs)):
+        break
+    else:
+        ofs_short.append(ofs[i])
+
+for j in range(0, len(oft),ratio_ft):
+    if(len(oft_short) == len(ft)):
+        break
+    else:
+        oft_short.append(oft[j])
+
+
+ofs = ofs_short
+oft = oft_short
+"""
+
+for x in range(2, len(losses)):
+    x0 = x-2
+    for i in range(3):
+        short_oft = []
+        ofs = losses[x][i] # could also oft this is a bad name and just refers to whichever we look at now
+        fs = losses[x0][i]
+        ratio_fs = max(int(len(ofs)/len(fs)),1)
+
+        #print(len(ofs), len(fs), len(short_oft), ratio_fs)
+
+        for j in range(0, len(ofs), ratio_fs):
+            if(len(short_oft) == len(fs)):
+                break
+            else:
+                short_oft.append(losses[x][i][j])
+
+        # update
+        losses[x][i] = short_oft
+
+
 plt.plot(losses[0][0])
 plt.plot(losses[2][0])
 plt.ylabel('(loss type one) modified fs vs original fs')
