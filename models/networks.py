@@ -119,6 +119,32 @@ def get_grid(x):
 
     return grid
 
+def forward_with_mask(img0, warped, recon_depths_0_1, interp_depths_1, alpha = 0.85):
+        
+    x0 = (img0 + 1.0) / 2.0
+    x0_w = (warped + 1.0) / 2
+    
+#    print("x0 shape: ", x0.shape)
+    
+    ssim_ = ssim(x0, x0_w)
+    
+#    print("ssim_ shape: ", ssim_.shape)
+    
+    l1 = torch.abs(x0-x0_w)
+    
+    r_d_0_1 = (recon_depths_0_1 + 1.0) / 2.0
+    i_d_1 = (interp_depths_1 + 1.0) / 2.0
+    
+    mask = F.avg_pool2d(torch.div(torch.abs(r_d_0_1 - i_d_1), (r_d_0_1 + i_d_1 + 1e-10)), 3, 1)
+    
+    loss1 = torch.mean(torch.mul(alpha * ssim_, 1 - mask))
+    loss2 = torch.mean(torch.mul((1-alpha) * l1, 1 - mask))
+    loss = loss1 + loss2
+    
+    print(loss, "------------------")
+    
+    return loss
+
 def define_G(which_model_netG='RESNET', use_dropout=False, up_size=[],
              init_type='normal', init_gain=0.02, gpu_ids=[], nblocks=9, stage='feat', out='depth'):
     netG = None
@@ -159,6 +185,45 @@ def define_D(input_nc, ndf, which_model_netD,
         raise NotImplementedError('Discriminator model name [%s] is not recognized' %
                                   which_model_netD)
     return init_net(netD, init_type, init_gain, gpu_ids)
+
+def create_gaussian_window(window_size, channel):
+    import math
+    def _gaussian(window_size, sigma):
+        gauss = torch.Tensor(
+            [math.exp(-(x - window_size//2)**2/float(2*sigma**2)) for x in range(window_size)])
+        return gauss/gauss.sum()
+    _1D_window = _gaussian(window_size, 1.5).unsqueeze(1)
+    _2D_window = _1D_window@(_1D_window.t()).float().unsqueeze(0).unsqueeze(0)
+    window = _2D_window.expand(
+        channel, 1, window_size, window_size).contiguous()
+    return window
+
+#device = torch.device("cpu")
+#window_size = 5
+#gaussian_img_kernel = create_gaussian_window(window_size, 3).float().to(device)
+#
+#
+#def ssim(img1, img2):
+#    params = {'weight': gaussian_img_kernel,
+#              'groups': 3, 'padding': window_size//2}
+#    mu1 = F.conv2d(img1, **params)
+#    mu2 = F.conv2d(img2, **params)
+#
+#    mu1_sq = mu1.pow(2)
+#    mu2_sq = mu2.pow(2)
+#    mu1_mu2 = mu1*mu2
+#
+#    sigma1_sq = F.conv2d(img1*img1, **params) - mu1_sq
+#    sigma2_sq = F.conv2d(img2*img2, **params) - mu2_sq
+#    sigma12 = F.conv2d(img1*img2, **params) - mu1_mu2
+#
+#    C1 = 0.01**2
+#    C2 = 0.03**2
+#
+#    ssim_map = ((2*mu1_mu2 + C1)*(2*sigma12 + C2)) / \
+#        ((mu1_sq + mu2_sq + C1)*(sigma1_sq + sigma2_sq + C2))
+#        
+#    return ssim_map
 
 def ssim(x, y):
 
@@ -243,16 +308,18 @@ class ReconLoss(nn.Module):
 
         #x0_w = warp(x1, -1.0*disp)
         x0_w = bilinear_sampler_1d_h(x1, -1.0*disp)
-
-        ssim_ = ssim(x0, x0_w)
-        l1 = torch.abs(x0-x0_w)
-        loss1 = torch.mean(self.alpha * ssim_)
-        loss2 = torch.mean((1-self.alpha) * l1)
-        loss = loss1 + loss2
+        
+#        ssim_ = ssim(x0, x0_w)
+#        l1 = torch.abs(x0-x0_w)
+#        loss1 = torch.mean(self.alpha * ssim_)
+#        loss2 = torch.mean((1-self.alpha) * l1)
+#        loss = loss1 + loss2
 
         recon_img = x0_w * 2.0-1.0
 
-        return loss, recon_img
+        return 0, recon_img
+    
+    
 
 # Defines the GAN loss which uses either LSGAN or the regular GAN.
 # When LSGAN is used, it is basically same as MSELoss,
