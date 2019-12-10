@@ -50,12 +50,18 @@ oft = oft_short
 """
 some plots beginning with the most rudimentary
 """
-plt.plot(fs)
-plt.plot(ofs)
-plt.ylabel('modified fs vs original fs')
+plt.plot(fs, label="Modified")
+plt.plot(ofs, label="Original")
+plt.title("Total Loss: Modified Fs vs original Fs")
+plt.ylabel("Loss")
+plt.xlabel("Epoch")
+plt.legend()
 plt.show()
 
-plt.plot(ft)
-plt.plot(oft)
-plt.ylabel('modified ft vs original ft')
+plt.plot(ft, label="Modified")
+plt.plot(oft, label="Original")
+plt.title('Total Loss: Modified Ft vs Original Ft')
+plt.ylabel("Loss")
+plt.xlabel("Epoch")
+plt.legend()
 plt.show()
