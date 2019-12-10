@@ -216,13 +216,48 @@ class GASDAModel(BaseModel):
         self.loss_R_Img_Tgt_S = 0.0
         i = 0
         for (l_img, r_img, gen_depth) in zip(l_imgs, r_imgs, self.out_s):
-            loss, self.warp_tgt_img_s = self.criterionImgRecon(l_img, r_img, gen_depth, self.tgt_fb / 2**(3-i))
+            
+            pre_loss, self.warp_tgt_img_s = self.criterionImgRecon(l_img, r_img, gen_depth, self.tgt_fb / 2**(3-i))
+#            print("shape of l_img: ", l_img.shape)
+#            print("shape of warped: ", self.warp_tgt_img.shape)
+            if (i < 2): 
+                p = torch.nn.modules.upsampling.Upsample(scale_factor=2**(2-i), mode='bilinear')
+                warped_depths = self.netG_Depth_S(p(self.warp_tgt_img_s))[-1]
+                warped_depths = F.upsample(warped_depths, size=(warped_depths.size(2)//(2**(2-i)), warped_depths.size(3)//(2**(2-i))), mode='bilinear')
+                interp_depths_r = self.netG_Depth_S(p(r_img))[-1]
+                interp_depths_r = F.upsample(interp_depths_r, size=(interp_depths_r.size(2)//(2**(2-i)), interp_depths_r.size(3)//(2**(2-i))), mode='bilinear')
+            else:
+                warped_depths = self.netG_Depth_S(self.warp_tgt_img_s)[-1][:,:,:self.warp_tgt_img_s.shape[2],:]
+                interp_depths_r = self.netG_Depth_S(r_img)[-1][:,:,:r_img.shape[2],:]
+            
+            print("pre_loss: ", pre_loss)
+            loss = networks.forward_with_mask(l_img, self.warp_tgt_img_s, warped_depths, interp_depths_r)
+            del warped_depths
+            del interp_depths_r
             self.loss_R_Img_Tgt_S += loss * lambda_R_Img
             i += 1
         self.loss_R_Img_Tgt_T = 0.0
         i = 0
         for (l_img, r_img, gen_depth) in zip(l_imgs, r_imgs, self.out_t):
-            loss, self.warp_tgt_img_t = self.criterionImgRecon(l_img, r_img, gen_depth, self.tgt_fb / 2**(3-i))
+            
+            pre_loss, self.warp_tgt_img_t = self.criterionImgRecon(l_img, r_img, gen_depth, self.tgt_fb / 2**(3-i))
+#            print("shape of l_img: ", l_img.shape)
+#            print("shape of warped: ", self.warp_tgt_img.shape)
+            
+            if (i < 2): 
+                p = torch.nn.modules.upsampling.Upsample(scale_factor=2**(2-i), mode='bilinear')
+                warped_depths = self.netG_Depth_T(p(self.warp_tgt_img_t))[-1]
+                warped_depths = F.upsample(warped_depths, size=(warped_depths.size(2)//(2**(2-i)), warped_depths.size(3)//(2**(2-i))), mode='bilinear')
+                interp_depths_r = self.netG_Depth_T(p(r_img))[-1]
+                interp_depths_r = F.upsample(interp_depths_r, size=(interp_depths_r.size(2)//(2**(2-i)), interp_depths_r.size(3)//(2**(2-i))), mode='bilinear')
+            else:
+                warped_depths = self.netG_Depth_T(self.warp_tgt_img_t)[-1][:,:,:self.warp_tgt_img_t.shape[2],:]
+                interp_depths_r = self.netG_Depth_T(r_img)[-1][:,:,:r_img.shape[2],:]
+            
+            print("pre_loss: ", pre_loss)
+            loss = networks.forward_with_mask(l_img, self.warp_tgt_img_t, warped_depths, interp_depths_r)
+            del warped_depths
+            del interp_depths_r
             self.loss_R_Img_Tgt_T += loss * lambda_R_Img
             i += 1
         # smoothness

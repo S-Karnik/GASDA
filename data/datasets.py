@@ -64,7 +64,7 @@ class VKittiDataset(data.Dataset):
         rgb = Image.open(osp.join(self.root, datafiles['rgb'])).convert('RGB')
 
         assert osp.exists(osp.join(self.root, datafiles['depth'])), "Depth does not exist"                
-        depth = Image.open(osp.join(self.root, datafiles['depth']))           
+        depth = Image.open(osp.join(self.root, datafiles['depth']))
     
         return rgb, depth
     
@@ -132,7 +132,7 @@ class KittiDataset(data.Dataset):
         return len(self.files)
 
     def read_data(self, datafiles):
-        #print(osp.join(self.root, datafiles['l_rgb']))
+        print(self.root, datafiles)
         assert osp.exists(osp.join(self.root, datafiles['l_rgb'])), "Image does not exist"
         l_rgb = Image.open(osp.join(self.root, datafiles['l_rgb'])).convert('RGB')
         w = l_rgb.size[0]
@@ -177,6 +177,7 @@ class KittiDataset(data.Dataset):
             return data
 
         data = {}
+        
         if l_img is not None:
             data['left_img'] = l_img
         if r_img is not None:

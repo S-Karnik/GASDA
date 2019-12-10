@@ -17,7 +17,7 @@ def create_test_dataloader(args):
 
     dataset = get_dataset(root=args.root, data_file=args.test_datafile, phase='test',
                         dataset=args.tgt_dataset, img_transform=img_transform, joint_transform=joint_transform,
-                        depth_transform=None, test_dataset=args.test_dataset)
+                        depth_transform=depth_transform, test_dataset=args.test_dataset)
     loader = torch.utils.data.DataLoader(
                                 dataset,
                                 batch_size=1, shuffle=False,

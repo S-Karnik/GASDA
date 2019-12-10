@@ -78,6 +78,9 @@ class FTModel(BaseModel):
         if self.isTrain:
 
             self.fake_src_left = self.netG_Tgt(self.tgt_left_img).detach()
+            
+#            print("Shape of actual image ", self.src_img.shape)
+            
             self.out = self.netG_Depth_T(torch.cat((self.src_img, self.fake_src_left), 0))
             self.src_gen_depth = self.out[-1].narrow(0, 0, self.num)
             self.tgt_gen_depth = self.out[-1].narrow(0, self.num, self.num)
@@ -101,8 +104,29 @@ class FTModel(BaseModel):
         r_imgs = dataset_util.scale_pyramid(self.tgt_right_img, 4)
         self.loss_R_Img_Tgt = 0.0
         i = 0
+        
+#        print("Length of out: ", len(self.out))
+#        print("Shape of out[0]: ", (self.out[0]).shape)
+        
         for (l_img, r_img, gen_depth) in zip(l_imgs, r_imgs, self.out):
-            loss, self.warp_tgt_img = self.criterionImgRecon(l_img, r_img, gen_depth[self.num:,:,:,:], self.tgt_fb / 2**(3-i))
+            
+            _, self.warp_tgt_img = self.criterionImgRecon(l_img, r_img, gen_depth[self.num:,:,:,:], self.tgt_fb / 2**(3-i))
+#            print("shape of l_img: ", l_img.shape)
+#            print("shape of warped: ", self.warp_tgt_img.shape)
+            
+            if (i < 2): 
+                p = torch.nn.modules.upsampling.Upsample(scale_factor=2**(2-i), mode='bilinear')
+                warped_depths = self.netG_Depth_T(p(self.warp_tgt_img))[-1]
+                warped_depths = F.upsample(warped_depths, size=(warped_depths.size(2)//(2**(2-i)), warped_depths.size(3)//(2**(2-i))), mode='bilinear')
+                interp_depths_r = self.netG_Depth_T(p(r_img))[-1]
+                interp_depths_r = F.upsample(interp_depths_r, size=(interp_depths_r.size(2)//(2**(2-i)), interp_depths_r.size(3)//(2**(2-i))), mode='bilinear')
+            else:
+                warped_depths = self.netG_Depth_T(self.warp_tgt_img)[-1][:,:,:self.warp_tgt_img.shape[2],:]
+                interp_depths_r = self.netG_Depth_T(r_img)[-1][:,:,:r_img.shape[2],:]
+            
+            loss = networks.forward_with_mask(l_img, self.warp_tgt_img, warped_depths, interp_depths_r)
+            del warped_depths
+            del interp_depths_r
             self.loss_R_Img_Tgt += loss * lambda_R_Img
             i += 1
 
@@ -113,6 +137,7 @@ class FTModel(BaseModel):
             i += 1
 
         self.loss_G_Depth = self.loss_R_Img_Tgt + self.loss_S_Depth_Tgt + self.loss_R_Depth_Src
+        
         self.loss_G_Depth.backward()
 
     def optimize_parameters(self):

@@ -31,6 +31,7 @@ def compute_errors(ground_truth, predication):
     a1 = (threshold < 1.25 ).mean()
     a2 = (threshold < 1.25 ** 2 ).mean()
     a3 = (threshold < 1.25 ** 3 ).mean()
+#    print(threshold)
 
     #MSE
     rmse = (ground_truth - predication) ** 2
@@ -158,7 +159,7 @@ class KITTI:
 
         if interp:
             # interpolate the depth map to fill in holes
-            depth_interp = lin_interp(im_shape, velo_pts_im)
+            depth_interp = self.lin_interp(im_shape, velo_pts_im)
             return depth, depth_interp
         else:
             return depth
