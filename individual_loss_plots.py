@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import bokeh
+import statistics 
+
 #import plotly
 """
 file1(loss_type1, loss_type2, loss_type3),
@@ -75,11 +77,12 @@ for x in range(2, len(losses)):
         losses[x][i] = short_oft
 
 
+"""
 plt.plot(losses[0][0], label="Modified")
 plt.plot(losses[2][0], label="Original")
 plt.title('(Depth Consistency Loss) Modified Fs vs Original Fs')
 plt.ylabel("Loss")
-plt.xlabel("Epoch")
+plt.xlabel("Iteration")
 plt.legend()
 plt.show()
 
@@ -87,7 +90,7 @@ plt.plot(losses[0][1], label="Modified")
 plt.plot(losses[2][1], label="Original")
 plt.title('(Depth Smootheness Loss) Modified Fs vs Original Fs')
 plt.ylabel("Loss")
-plt.xlabel("Epoch")
+plt.xlabel("Iteration")
 plt.legend()
 plt.show()
 
@@ -95,30 +98,49 @@ plt.plot(losses[0][2], label="Modified")
 plt.plot(losses[2][2], label="Original")
 plt.title('(Geometry Consistency Loss) Modified Fs vs Original Fs')
 plt.ylabel("Loss")
-plt.xlabel("Epoch")
+plt.xlabel("Iteration")
 plt.legend()
 plt.show()
+"""
 
 """ ft """
+
+"""
 plt.plot(losses[1][0], label="Modified")
 plt.plot(losses[3][0], label="Original")
 plt.title('(Depth Consistency Loss) Modified Ft vs Original Ft')
 plt.ylabel("Loss")
-plt.xlabel("Epoch")
+plt.xlabel("Iteration")
 plt.show()
 
 plt.plot(losses[1][1], label="Modified")
 plt.plot(losses[3][1], label="Original")
 plt.title('(Depth Smootheness Loss) Modified Ft vs Original Ft')
 plt.ylabel("Loss")
-plt.xlabel("Epoch")
+plt.xlabel("Iteration")
 plt.legend()
 plt.show()
 
 plt.plot(losses[1][2], label="Modified")
 plt.plot(losses[3][2], label="Original")
-plt.title('(Depth Consistency Loss) Modified Ft vs Original Ft')
+plt.title('(Geometric Consistency Loss) Modified Ft vs Original Ft')
 plt.ylabel("Loss")
-plt.xlabel("Epoch")
+plt.xlabel("Iteration")
 plt.legend()
 plt.show()
+"""
+
+
+# skip the first 10 percent of the image because of the dip
+geometry_fs = losses[0][2][int(len(fs)/10):]
+geometry_ft = losses[1][2][int(len(fs)/10):]
+geometry_ofs = losses[2][2][int(len(fs)/10):]
+geometry_oft = losses[3][2][int(len(fs)/10):]
+
+stdev_fs = statistics.stdev(geometry_fs)
+stdev_ft = statistics.stdev(geometry_ft)
+stdev_ofs = statistics.stdev(geometry_ofs)
+stdev_oft = statistics.stdev(geometry_oft)
+
+print("fs", stdev_fs, stdev_ofs)
+print("ft", stdev_ft, stdev_oft)
